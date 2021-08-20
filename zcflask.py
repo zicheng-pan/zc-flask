@@ -4,9 +4,10 @@ from werkzeug.serving import run_simple
 from werkzeug.wrappers import Response
 from werkzeug.wrappers import Request
 import exceptions
+from execfunc import ExecFunc
 
-from ExecFunc import ExecFunc
 from helper import parse_static_key
+from route import Route
 from static import ERROR_MAP, TYPE_MAP
 
 
@@ -20,22 +21,50 @@ def wsgi_app(app, environ, start_response):
 class WEBMVC:
 
     def __init__(self, static_folder='static'):
-        self.host = "127.0.0.1"
+        self.host = '127.0.0.1'
         self.port = 8080
         self.static_map = {}  # url --> static resource
         self.url_map = {}  # url ---> endpoint
         self.function_map = {}  # endpoint --> ExecFunc
         self.static_folder = static_folder
         self.function_map['static'] = ExecFunc(func=self.dispatch_static, func_type='static')
+        self.route = Route(self)
 
     def dispatch_request(self, request):
-        status = 200
         headers = {
-            'Server': 'hello webserver'
+            'Server': 'ZC Flask 0.1'
         }
 
-        return Response('<h1>Hello, Framework</h1>', content_type='text/html',
-                        headers=headers, status=status)
+        url = request.base_url.replace(request.host_url, '/')
+
+        if url.startswith('/' + self.static_folder + '/'):
+            endpoint = 'static'
+            url = url[1:]
+        else:
+            endpoint = self.url_map.get(url, None)
+
+        if endpoint is None:
+            return ERROR_MAP['404']
+
+        exec_function = self.function_map[endpoint]
+
+        exec_type = exec_function.func_type
+        if exec_type == 'route':
+            rep = self.do_route_process(request, exec_function)
+
+        elif exec_type == 'static':
+            return exec_function.func(url)
+
+        elif exec_type == 'view':
+            rep = exec_function.func(request)
+
+        else:
+            return ERROR_MAP['503']
+
+        content_type = 'text/html; charset=UTF-8'
+        status = 200
+        return Response(rep, content_type=content_type, headers=headers,
+                        status=status)
 
     def dispatch_static(self, static_path):
 
@@ -43,7 +72,7 @@ class WEBMVC:
             return ERROR_MAP['404']
 
         key = parse_static_key(static_path)
-        file_type = TYPE_MAP.get(key, "test/plain")
+        file_type = TYPE_MAP.get(key, 'test/plain')
         with open(static_path, 'rb') as f:
             data = f.read()
         return Response(data, content_type=file_type)
@@ -78,3 +107,15 @@ class WEBMVC:
         self.url_map[url] = endpoint
 
         self.function_map[endpoint] = ExecFunc(func, func_type, **options)
+
+    def do_route_process(self, request, exec_function):
+        if request.method in exec_function.options.get('methods'):
+            argcount = exec_function.func.__code__.co_argcount
+            if argcount > 0:
+                rep = exec_function.func(request)
+            else:
+                rep = exec_function.func()
+        else:
+            return ERROR_MAP['401']
+
+        return rep

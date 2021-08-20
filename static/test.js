@@ -1,0 +1,1 @@
+alert("testing static js file");
