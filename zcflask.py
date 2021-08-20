@@ -1,7 +1,14 @@
 from werkzeug.serving import run_simple
 from werkzeug.wrappers import Response
+from werkzeug.wrappers import Request
 
-from wsgi_adapter import wsgi_app
+
+
+## WSGI main process callback method
+def wsgi_app(app, environ, start_response):
+    request = Request(environ)
+    response = app.dispatch_request(request)
+    return response(environ, start_response)
 
 
 class WEBMVC:
