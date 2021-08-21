@@ -1,4 +1,5 @@
 from zcflask import WEBMVC
+from view import BaseView, Controller
 
 app = WEBMVC()
 
@@ -11,14 +12,40 @@ app = WEBMVC()
 #     return 'Hello, World'
 
 
-@app.route('/index', methods=['GET'])
-def index():
-    return "testing"
+# @app.route('/index', methods=['GET'])
+# def index():
+#     return "testing"
+#
+#
+# @app.route('/test/js')
+# def test_js():
+#     return '<script src="/static/test.js"></script>'
 
 
-@app.route('/test/js')
-def test_js():
-    return '<script src="/static/test.js"></script>'
+class GetView(BaseView):
+    def get(self, request):
+        return 'get view'
 
+
+class PostView(GetView):
+    def post(self, request):
+        return "post view"
+
+
+view_map = [
+    {
+        'url': '/index/view/get',
+        'view': GetView,
+        'endpoint': 'getindex'
+    },
+    {
+        'url': '/index/view/post',
+        'view': PostView,
+        'endpoint': 'postindex'
+    }
+]
+
+index_controller = Controller('index', view_map)
+app.load_controller(index_controller)
 
 app.run(use_reloader=True)

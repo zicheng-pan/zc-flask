@@ -119,3 +119,12 @@ class WEBMVC:
             return ERROR_MAP['401']
 
         return rep
+
+    def bind_view(self, url, view_class, endpoint):
+        func = view_class.get_func(endpoint)
+        self.add_url_role(url, func=func, func_type='view')
+
+    def load_controller(self, controller):
+        for rule in controller.url_map:
+            self.bind_view(rule['url'], rule['view'],
+                           controller.name + '.' + rule['endpoint'])
