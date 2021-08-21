@@ -1,11 +1,12 @@
 import os
-
+import base64
+import time
 from werkzeug.serving import run_simple
 from werkzeug.wrappers import Response
 from werkzeug.wrappers import Request
 import exceptions
 from execfunc import ExecFunc
-
+from session_localstorefile import session
 from helper import parse_static_key
 from route import Route
 from static import ERROR_MAP, TYPE_MAP
@@ -19,6 +20,9 @@ def wsgi_app(app, environ, start_response):
     response = app.dispatch_request(request)
     return response(environ, start_response)
 
+
+def create_session_id():
+    return base64.encodebytes(str(time.time()).encode()).decode()[:-2][::-1]
 
 class WEBMVC:
     template_folder = 'template'
@@ -37,6 +41,12 @@ class WEBMVC:
         headers = {
             'Server': 'ZC Flask 0.1'
         }
+
+        # get session_id by cookie
+        cookies = request.cookies
+
+        if not 'session_id' in cookies:
+            headers['Set-Cookie'] = 'session_id={}'.format(create_session_id())
 
         url = request.base_url.replace(request.host_url, '/')
 
@@ -90,7 +100,8 @@ class WEBMVC:
 
         if port:
             self.port = port
-
+        print(1)
+        session.load_all_local_session()
         run_simple(hostname=self.host, port=self.port, application=self, **options)
 
     def __call__(self, environ, start_response):
