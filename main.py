@@ -1,5 +1,6 @@
 from zcflask import WEBMVC
 from view import BaseView, Controller
+from zcflask import simple_template
 
 app = WEBMVC()
 
@@ -32,6 +33,11 @@ class PostView(GetView):
         return "post view"
 
 
+class RenderTemplate(BaseView):
+    def get(self, request):
+        return simple_template("index.html", user="testUser", message="hello world")
+
+
 view_map = [
     {
         'url': '/index/view/get',
@@ -42,6 +48,11 @@ view_map = [
         'url': '/index/view/post',
         'view': PostView,
         'endpoint': 'postindex'
+    },
+    {
+        'url': '/index/rendertemplate',
+        'view': RenderTemplate,
+        'endpoint': 'rendertemplate'
     }
 ]
 

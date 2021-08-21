@@ -10,8 +10,10 @@ from helper import parse_static_key
 from route import Route
 from static import ERROR_MAP, TYPE_MAP
 
-
 ## WSGI main process callback method
+from template_engine import replace_template
+
+
 def wsgi_app(app, environ, start_response):
     request = Request(environ)
     response = app.dispatch_request(request)
@@ -19,6 +21,7 @@ def wsgi_app(app, environ, start_response):
 
 
 class WEBMVC:
+    template_folder = 'template'
 
     def __init__(self, static_folder='static'):
         self.host = '127.0.0.1'
@@ -128,3 +131,7 @@ class WEBMVC:
         for rule in controller.url_map:
             self.bind_view(rule['url'], rule['view'],
                            controller.name + '.' + rule['endpoint'])
+
+
+def simple_template(path, **options):
+    return replace_template(WEBMVC, path, **options)
