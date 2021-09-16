@@ -15,6 +15,13 @@ def test01(*args, **kargs):
     print(str(kargs))
     print("this is test method end")
 
+@logger
+def test02():
+    print("this is method 2")
+
+@logger
+def test03():
+    pass
 
 test01(1, 2, argument1="argument1", argument2="argument2")
 
