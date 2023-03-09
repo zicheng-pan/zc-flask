@@ -5,7 +5,7 @@ class Route:
 
     def __call__(self, url, **options):
         if 'methods' not in options:
-            options['methods'] = ['GET']
+            options['methods'] = ['GET','POST']
 
         def decorator(f):
             self.app.add_url_role(url, f, 'route', **options)

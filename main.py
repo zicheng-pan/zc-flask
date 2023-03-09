@@ -11,12 +11,12 @@ app = WEBMVC()
 # app = Flask(__name__)
 #
 # @app.route('/', methods=['GET'])
-# def index():
+# def index1():
 #     return 'Hello, World'
 
 
 # @app.route('/index', methods=['GET'])
-# def index():
+# def index2():
 #     return "testing"
 #
 #

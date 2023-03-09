@@ -16,8 +16,18 @@ from template_engine import replace_template
 
 
 def wsgi_app(app, environ, start_response):
+    """这是处理请求的核心方法，每次服务器收到请求都会运行这个方法，
+    其它代码都是由这个方法内部调用。
+
+    :param app: 应用程序
+    :param environ: Werkzeug 提供的请求信息字典对象
+    :param start_response: Werkzeug 提供的进一步处理的函数
+    """
     request = Request(environ)
     response = app.dispatch_request(request)
+    # 调用响应对象的 __call__ 方法并返回
+    # 此方法定义在 werkzeug.wrappers.base_response.BaseResponse 类中
+    # 其作用是将响应对象返回给 Werkzeug 这个中间桥梁并由后者转发给客户端
     return response(environ, start_response)
 
 
@@ -104,6 +114,7 @@ class WEBMVC:
         session.load_all_local_session()
         run_simple(hostname=self.host, port=self.port, application=self, **options)
 
+    # 框架被 WSGI 调用入口的方法
     def __call__(self, environ, start_response):
         return wsgi_app(self, environ, start_response)
 
